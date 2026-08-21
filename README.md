@@ -5,7 +5,7 @@ A Chariot Tracking web-app for upcoming "Rath Yatra" or chariot festival. The ch
   <img src="assets/Sample Map.png" alt="Sample Map" width="full" height = "500" />
 </p>
 
-Any kind of support is requested and appreciated. 
+Any kind of support is requested and appreciated. The focus areas are Itahari and Biratnagar. 
 The name it's a bit weird  I know (let's discuss other names) 😅. We would pull and drag the chariot and when it's fully dragged to the final location it would end. So, that's how it came.
 
 
