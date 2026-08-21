@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pullydragged — System Solution Design & Architecture Overview</title>
+  <style>
+    :root {
+      --primary: #f97316;
+      --primary-dark: #ea580c;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(249, 115, 22, 0.2);
+      color: var(--primary);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 2.5rem; color: #fff; margin-bottom: 0.5rem; }
+    p.subtitle { color: var(--text-muted); font-size: 1.1rem; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h3 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.25rem; }
+    .card p { color: var(--text-muted); font-size: 0.95rem; }
+    
+    section { margin-bottom: 3rem; }
+    h2 { font-size: 1.75rem; color: var(--primary); margin-bottom: 1rem; border-left: 4px solid var(--primary); padding-left: 0.75rem; }
+    
+    .diagram-box {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: #7dd3fc;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    ul { list-style-type: none; margin-left: 0; }
+    li { position: relative; padding-left: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+    li::before { content: "✓"; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
+    
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 4rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">PROPOSED SOLUTION DESIGN</span>
+      <h1>pullydragged Platform</h1>
+      <p class="subtitle">Live Chariot Tracking Platform for Rath Yatra Festivals (Itahari & Biratnagar MVP)</p>
+    </header>
+
+    <section>
+      <h2>🌟 Executive Summary</h2>
+      <p style="color: var(--text-muted); font-size: 1.05rem;">
+        <strong>pullydragged</strong> is a modern, real-time web application that connects festival attendees directly to the live position of the sacred Rath (Chariot) during Rath Yatra. Designed as a reusable global template, the platform provides devotees with an auto-centering live map, route progress tracking, and interactive checkpoint cards (photos, history, and live announcements).
+      </p>
+    </section>
+
+    <section>
+      <h2>🏛️ High-Level System Architecture</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>📱 1. Devotee Mobile App</h3>
+          <p>Public-facing web app built with Next.js & Leaflet.js. Renders an auto-centering map and dynamic progress bar with zero registration required.</p>
+        </div>
+        <div class="card">
+          <h3>📡 2. GPS Broadcaster</h3>
+          <p>Single-tap web app running on the dedicated smartphone attached to the chariot. Uses Screen WakeLock and offline retry buffers to ensure 99.5%+ uptime.</p>
+        </div>
+        <div class="card">
+          <h3>⚡ 3. Real-Time Socket Engine</h3>
+          <p>Socket.io WebSocket server broadcasting sub-second location updates to isolated event rooms (<code>event:itahari</code>, <code>event:biratnagar</code>).</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>🔄 Real-Time Data Flow</h2>
+      <div class="diagram-box">
+┌─────────────────────────┐       Socket.io       ┌────────────────────────┐
+│  Broadcaster Smartphone │ ────────────────────> │ Socket.io Room Server  │
+│  (GPS on Chariot)       │   Location Update     │ (e.g. event:biratnagar)│
+└─────────────────────────┘                       └───────────┬────────────┘
+                                                              │ Broadcast
+                                                              ▼
+                                                  ┌────────────────────────┐
+                                                  │ Devotee Public Web App │
+                                                  │ (Auto-Centered Leaflet)│
+                                                  └────────────────────────┘
+      </div>
+    </section>
+
+    <section>
+      <h2>🛠️ Core Technology Stack</h2>
+      <ul>
+        <li><strong>Frontend Framework:</strong> Next.js 14 (App Router) + React 18</li>
+        <li><strong>Styling & UI:</strong> Tailwind CSS v4 (CSS-first engine)</li>
+        <li><strong>Interactive Map:</strong> Leaflet.js + OpenStreetMap (No API limits)</li>
+        <li><strong>Real-Time Pipeline:</strong> Socket.io WebSockets</li>
+        <li><strong>Database:</strong> MongoDB Atlas (Mongoose ODM)</li>
+        <li><strong>Geo Math Engine:</strong> Turf.js (Nearest polyline projection for route progress)</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>pullydragged Architecture & Solution Design — Approved for Implementation</p>
+    </footer>
+  </div>
+</body>
+</html>
